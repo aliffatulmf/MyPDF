@@ -100,7 +100,13 @@ class Manipulator(SanitizedTextTranslator):
                     wrapped_text = textwrap.fill(text_part, width=70)
                     file.write(wrapped_text.lower())
                 else:
-                    file.write(text.lower())
+                    for j in range(max_words_per_file):
+                        if i * max_words_per_file + j >= len(words):
+                            break
+                        if j > 0 and words[i * max_words_per_file + j - 1][-1] == "." and words[i * max_words_per_file + j][0].isupper():
+                            file.write("\n")
+                        file.write(words[i * max_words_per_file + j].lower() + " ")
+
                 file.close()
 
 
