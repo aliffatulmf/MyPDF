@@ -2,8 +2,8 @@ import argparse
 import os
 import textwrap
 import uuid
-import directory
 
+from directory import remove_all_items
 from tqdm import tqdm
 from langchain.document_loaders import UnstructuredPDFLoader, UnstructuredWordDocumentLoader
 from langchain.schema import Document
@@ -13,9 +13,20 @@ class Manipulator:
     def __init__(self, args: argparse.Namespace = None) -> None:
         self.folder_path = "docs"
         self.args = args
+        self.create_folder()
+
+    def create_folder(self):
+        try:
+            if not os.path.exists(self.folder_path):
+                os.makedirs(self.folder_path)
+                print("The 'docs' folder has been created successfully.")
+            else:
+                print("The 'docs' folder already exists.")
+        except OSError as e:
+            print(f"An error occurred while creating the 'docs' folder: {str(e)}")
 
     def read_and_split(self, documents: list[Document], max_words_per_file: int, wrap: bool = False):
-        self.remove_all_items(self.folder_path)
+        remove_all_items(self.folder_path)
 
         # Combine all page contents from the documents into a single string
         words = " ".join(document.page_content for document in documents).split()
@@ -62,7 +73,7 @@ class Manipulator:
         elif self.args.word:
             self.process_file(self.args.word, "Word")
         elif self.args.clean:
-            self.remove_all_items(self.folder_path)
+            remove_all_items(self.folder_path)
         else:
             print("No valid input provided.")
 
@@ -77,9 +88,6 @@ class Manipulator:
                     self.process_word(file_location)
             except ValueError as e:
                 print(f"Error: {str(e)}")
-
-    def remove_all_items(self, folder_path):
-        directory.remove_all_items(folder_path)
 
 
 def check_file_type(file_path):
@@ -107,7 +115,6 @@ def parse_arguments():
     process_group = parser.add_argument_group("Processing options")
     process_group.add_argument("--clean", action="store_true", help="Remove the 'docs' folder before processing the file")
     process_group.add_argument("--wrap", action="store_true", help="Wrap the text into paragraphs with a width of 70 characters")
-    process_group.add_argument("--dry-run", action="store_true", help="Run the process without taking any actual actions, only display simulation output")
 
     return parser.parse_args()
 
