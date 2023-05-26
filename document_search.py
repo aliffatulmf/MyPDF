@@ -1,6 +1,11 @@
+import argparse
+
 from llama_index import GPTVectorStoreIndex, LLMPredictor, ServiceContext, SimpleDirectoryReader, QuestionAnswerPrompt
 from rich.console import Console
 from document_search_backend import DocumentSearchBackend
+from langchain import OpenAI
+from langchain.chat_models import ChatOpenAI
+
 
 class DocumentSearch:
     def __init__(self, llm, folder_path):
@@ -40,3 +45,42 @@ class DocumentSearch:
         documents = self.search_documents(question)
         result = self.query_engine(documents, question)
         return result
+
+
+class Models:
+    def __init__(self, api_key: str):
+        self.api_key = api_key
+
+    def instruct_gpt(self, model: str = "text-davinci-003", temperature: float = 0.0):
+        return OpenAI(
+            openai_api_key=self.api_key,
+            model=model,
+            temperature=temperature
+        )
+
+    def chat_gpt(self, model: str = "gpt-3.5-turbo", temperature: float = 0.0):
+        return ChatOpenAI(
+            openai_api_key=self.api_key,
+            model=model,
+            temperature=temperature
+        )
+
+def create_gpt_models(api_key):
+    model_choices = {
+        "davinci": "text-davinci-003",
+        "chat": "gpt-3.5-turbo"
+    }
+
+    parser = argparse.ArgumentParser(description="Model selection for GPT functions")
+    parser.add_argument("--model", type=str, default="chat", choices=model_choices.keys(), help="The GPT model to use: 'davinci' or 'chat'. Default is 'chat'.")
+    parser.add_argument("--temperature", type=float, default=0.0, help="Temperature value for response generation")
+    args = parser.parse_args()
+
+    models = Models(api_key=api_key)
+    selected_model = model_choices[args.model]
+    if args.model == "best":
+        return models.instruct_gpt(model=selected_model, temperature=args.temperature)
+    elif args.model == "chat":
+        return models.chat_gpt(model=selected_model, temperature=args.temperature)
+    else:
+        print("Error: Invalid model specified. Please choose between 'davinci' and 'chat'.")

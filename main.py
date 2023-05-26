@@ -5,7 +5,7 @@ import sys
 from dotenv import load_dotenv
 from langchain.chat_models import ChatOpenAI
 from rich.console import Console
-from document_search import DocumentSearch
+from document_search import DocumentSearch, create_gpt_models
 
 if __name__ == "__main__":
     signal.signal(signal.SIGINT, lambda signal, frame: print("Program terminated gracefully.") or sys.exit(0))
@@ -18,13 +18,7 @@ if __name__ == "__main__":
         print("Error: OpenAI API key not found. Please set the environment variable 'OPENAI_API_KEY'.")
         sys.exit(1)
 
-    llm = ChatOpenAI(
-        openai_api_key=openai_api_key,
-        temperature=0,
-        model="gpt-3.5-turbo",
-        streaming=False
-    )
-
+    llm = create_gpt_models(openai_api_key)
     console = Console()
     doc_search = DocumentSearch(llm, folder_path)
 
