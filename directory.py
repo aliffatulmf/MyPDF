@@ -1,25 +1,36 @@
 import os
-
 from tqdm import tqdm
 
-class DirectoryError:
-    pass
+def remove_all_items(folder_location, dry_run=False):
+    """
+    Removes all folders or files inside the specified folder location.
 
-def clean_directory(folder_path: str, dry_run: bool = False):
-    if not os.path.exists(folder_path):
-        raise DirectoryError(f"Error: {folder_path} does not exist.")
-
-    parent_dir = os.path.basename(folder_path)
-    total_files = os.listdir(folder_path)
-
-    if len(total_files) == 0:
-        print(f"Folder {parent_dir} already cleaned.")
+    Args:
+        folder_location (str): The location of the folder.
+        dry_run (bool, optional): If True, only displays the process without deleting any folder or file.
+            Defaults to False.
+    """
+    if not os.path.isdir(folder_location):
+        print("Invalid folder location.")
         return
 
-    for entry in tqdm(total_files, desc="Removing files"):
-        if os.path.isfile(os.path.join(folder_path, entry)):
-            if not dry_run:
-                os.remove(os.path.join(folder_path, entry))
+    if dry_run:
+        print("Dry run mode enabled. No items will be deleted.")
 
-    print(f"Cleaning {parent_dir} folder completed.")
-    return total_files
+    items = os.listdir(folder_location)
+    total_items = len(items)
+    progress_bar = tqdm(total=total_items, desc="Processing", unit="item(s)")
+
+    for item in items:
+        item_path = os.path.join(folder_location, item)
+        if not dry_run:
+            if os.path.isfile(item_path):
+                os.remove(item_path)
+            else:
+                os.rmdir(item_path)
+
+        progress_bar.update(1)
+
+    progress_bar.close()
+    print("All items removed successfully.")
+
