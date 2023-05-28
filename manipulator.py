@@ -66,6 +66,10 @@ class Manipulator:
         self.read_and_split(documents, self.args.max_word, self.args.wrap)
 
     def run(self):
+        if not 100 <= self.args.max_word <= 700:
+            print("Maximum word limit should be between 100 and 700 (inclusive).")
+            exit(0)
+
         if self.args.pdf and self.args.word:
             print("Error: Cannot use both --pdf and --word arguments simultaneously.")
         elif self.args.pdf:
@@ -110,7 +114,7 @@ def parse_arguments():
     file_group = parser.add_argument_group("File options")
     file_group.add_argument("--pdf", type=str, help="Path of the PDF file to be read")
     file_group.add_argument("--word", type=str, help="Path of the Word file to be read")
-    file_group.add_argument("--max-word", type=int, default=400, help="Maximum word limit per file (default: 400)")
+    file_group.add_argument("--max-word", type=int, default=400, help="Maximum word limit per file (default: 400, min:100, max: 700)")
 
     process_group = parser.add_argument_group("Processing options")
     process_group.add_argument("--clean", action="store_true", help="Remove the 'docs' folder before processing the file")

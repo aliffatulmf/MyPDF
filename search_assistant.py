@@ -67,12 +67,13 @@ payload = {
 
 
 def prompt_template(context: list, question: str):
+    prompt_length = 65
     query_words = question.split()
     query_length = len(query_words)
-    total_length = query_length + len(context) + 58
+    total_length = query_length + len(context) + prompt_length
 
     if total_length > 4097:
-        context_text = " ".join(context[:len(context) - (query_length + 58)])
+        context_text = " ".join(context[:len(context) - (query_length + prompt_length)])
     else:
         context_text = " ".join(context)
 
@@ -98,10 +99,8 @@ def search_and_return_documents(question: str):
     load_docs = ds.search_documents(question)
     read_docs = read_documents(load_docs)
     prompt = prompt_template(read_docs, question)
-
-    payload["messages"].append({"role": "user", "content": prompt})
+    payload["messages"] = [{"role": "system", "content": system_content}, {"role": "user", "content": prompt}]
     response = requests.post(API_URL, headers=HEADERS, data=json.dumps(payload))
-    payload["messages"].append({"role": "assistant", "content": response.text})
 
     return response.text
 
@@ -156,7 +155,6 @@ def run_search():
         })
 
     if args.type == "document":
-        payload["messages"].append({"role": "system", "content": system_content})
         payload["presence_penalty"] = 0.6
 
         search_type = "Document"
@@ -176,14 +174,8 @@ def run_search():
         f"[green bold]To stop the program, press Ctrl+C on your keyboard while in {search_type} search mode.\n")
 
     while True:
-        console.print(f"[white bold]({search_type}) Question[/][white]: ", end="")
-        query = input()
-
-        loading_screen = LoadingScreen()
-        loading_screen.start()
+        query = input(console.render_str(f"[white bold]({search_type}) Question[/][white]: "))
         answer = Markdown(search_func(query))
-        loading_screen.stop()
-
         console.print(f"[white bold]({search_type}) Answer[/]: {answer.markup}", end="\n\n", markup=True,
                       highlight=True)
 
