@@ -1,4 +1,5 @@
 import re
+import langid
 
 from googletrans import Translator
 
@@ -18,8 +19,8 @@ class Text:
         if sanitize:
             text = self.sanitize_text(text)
 
-        detected_lang = self.translator.detect(text)
-        return detected_lang.lang
+        detected_lang = langid.classify(text)
+        return detected_lang[0]
 
     def sanitize_text(self, text: str) -> str:
         return re.sub(r"[^a-zA-Z0-9]", " ", text).strip()
